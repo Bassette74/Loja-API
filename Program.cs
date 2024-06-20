@@ -1,3 +1,4 @@
+/*
 using loja.Data;
 using loja.Data.loja.data;
 using Loja;
@@ -138,7 +139,117 @@ return Results.Ok(existingFornecedor);
 
 });
 
+*/
 
+using Microsoft.AspNetCore.Mvc;
+
+using loja.services;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Loja.Models;
+using Loja;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddScoped<ProductService>();
+
+var app = builder.Build();
+
+// Configurar as requisições HTTP 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+// ---------------ENDPOINTS PRODUTOS ---------------------------------------------------------------------
+
+app.MapGet("/produtos", async (ProductService productService) =>
+{
+    var produtos = await productService.GetAllProductsAsync();
+    return Results.Ok(produtos);
+});
+
+app.MapGet("/produtos/{id}", async (int id, ProductService productService) =>
+{
+    var produto = await productService.GetProductByIdAsync(id);
+    if (produto == null)
+    {
+        return Results.NotFound($"Product with ID {id} not found.");
+    }
+    return Results.Ok(produto);
+});
+
+app.MapPost("/produtos", async (Produto produto, ProductService productService) =>
+{
+    await productService.AddProductAsync(produto);
+    return Results.Created($"/produtos/{produto.Id}", produto);
+
+});
+
+app.MapPut("/produtos/{id}", async (int id, Produto produto, ProductService productService) =>
+{
+    if (id != produto.Id)
+    {
+        return Results.BadRequest("Product ID mismatch.");
+    }
+
+    await productService.UpdateProductAsync(produto);
+    return Results.Ok();
+});
+
+app.MapDelete("/produtos/{id}", async (int id, ProductService productService) =>
+{
+    await productService.DeleteProductAsync(id);
+    return Results.Ok();
+});
+
+app.Run();
+
+// --------------------ENDPOINTS CLIENTES --------------------------------------------------------
+
+app.MapGet("/cliente", async (ClienteService clienteService) =>
+{
+    var clientes = await clienteService.GetAllProductsAsync();
+    return Results.Ok(clientes);
+});
+
+app.MapGet("/cliente/{id}", async (int id, ClienteService clienteService) =>
+{
+    var cliente = await clienteService.GetProductByIdAsync(id);
+    if (cliente == null)
+    {
+        return Results.NotFound($"Cliente with ID {id} not found.");
+    }
+    return Results.Ok(cliente);
+});
+
+app.MapPost("/cliente", async (Cliente cliente, ClienteService clienteService) =>
+{
+    await clienteService.AddProductAsync(cliente);
+    return Results.Created($"/cliente/{cliente.Id}", cliente);
+
+});
+
+app.MapPut("/cliente/{id}", async (int id, Cliente cliente, ClienteService clienteService) =>
+{
+    if (id != cliente.Id)
+    {
+        return Results.BadRequest("Cliente ID mismatch.");
+    }
+
+    await clienteService.UpdateProductAsync(cliente);
+    return Results.Ok();
+});
+
+app.MapDelete("/cliente/{id}", async (int id, ClienteService clienteService) =>
+{
+    await clienteService.DeleteProductAsync(id);
+    return Results.Ok();
+});
+
+
+//---------------Endpoint Fornecedores-----------------------------------------------------------------------------
 
 
 

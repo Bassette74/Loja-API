@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using loja.Data.loja.data;
 
@@ -10,9 +11,11 @@ using loja.Data.loja.data;
 namespace Loja.Migrations
 {
     [DbContext(typeof(LojaDbContext))]
-    partial class LojaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240620234030_ATUALIZAÇÃO_eNDPOINTS")]
+    partial class ATUALIZAÇÃO_eNDPOINTS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
