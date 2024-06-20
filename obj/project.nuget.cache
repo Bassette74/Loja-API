@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rx718tDB9ko0eUhhgSDKbrlAPncfrEtzhNNkyXSSyXUZTBAwFJDZL+/8W2umSGGP098i+9fMT8szSyWZb3r4Yw==",
+  "dgSpecHash": "plELOdTYjagbSSzclCiJys7cr40rAW272JVOCJI3q8B2QAxUM4UgZS4t9sqLT634lhDA23XFJUV1h3bjFhXPag==",
   "success": true,
-  "projectFilePath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja\\Loja.csproj",
+  "projectFilePath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja-API\\Loja-API\\Loja.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\felip\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\felip\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.6\\microsoft.aspnetcore.openapi.8.0.6.nupkg.sha512",

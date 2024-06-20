@@ -2721,11 +2721,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja\\Loja.csproj",
+      "projectUniqueName": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja-API\\Loja-API\\Loja.csproj",
       "projectName": "Loja",
-      "projectPath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja\\Loja.csproj",
+      "projectPath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja-API\\Loja-API\\Loja.csproj",
       "packagesPath": "C:\\Users\\felip\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja\\obj\\",
+      "outputPath": "C:\\Users\\felip\\OneDrive - Cruzeiro do Sul Educacional - Acadêmico\\Desktop\\tutorial\\Loja-API\\Loja-API\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\felip\\AppData\\Roaming\\NuGet\\NuGet.Config"
