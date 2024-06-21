@@ -418,4 +418,45 @@ app.MapGet("/rotaSegura", async (HttpContext context) =>
     await context.Response.WriteAsync("Autorizado");
 });
 
+//---------------------------Aunteticaçõa em todas as rotas ---------------------------------
+// Habilitar a autenticação JWT para proteger os endpoints
+app.UseAuthentication();
+
+// Configuração do pipeline de requisição
+app.UseAuthorization();
+
+// Configurar as requisições HTTP 
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+
+app.MapWhen(
+    context => context.Request.Path.StartsWithSegments("/api"),
+    builder =>
+    {
+        builder.UseAuthentication();
+        builder.UseAuthorization();
+
+        // Define seus endpoints protegidos aqui
+        app.MapGet("/api/produtos", async (ProductService productService) =>
+        {
+            var produtos = await productService.GetAllProductsAsync();
+            return Results.Ok(produtos);
+        });
+
+        app.MapGet("/api/Cliente", async (ClienteService clienteService) =>
+        {
+            var clientes = await clienteService.GetAllProductsAsync();
+            return Results.Ok(clientes);
+        });
+        app.MapGet("/api/fornecedores", async (FornecedoresService fornecedoresService) =>
+        {
+            var fornecedores = await fornecedoresService.GetAllProductsAsync();
+            return Results.Ok(fornecedores);
+        });
+        
+    });
+
 app.Run();
