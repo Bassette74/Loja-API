@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using loja.Data.loja.data;
+using loja.Data;
 
 #nullable disable
 
 namespace Loja.Migrations
 {
     [DbContext(typeof(LojaDbContext))]
-    [Migration("20240620234030_ATUALIZAÇÃO_eNDPOINTS")]
-    partial class ATUALIZAÇÃO_eNDPOINTS
+    [Migration("20240621002550_ADD_TODAS_ENDPOINTSa7")]
+    partial class ADD_TODAS_ENDPOINTSa7
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

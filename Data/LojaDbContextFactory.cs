@@ -1,4 +1,4 @@
-using loja.Data.loja.data;
+using loja.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 

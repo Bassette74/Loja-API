@@ -140,19 +140,25 @@ return Results.Ok(existingFornecedor);
 });
 
 */
+using loja.Data;
 
-using Microsoft.AspNetCore.Mvc;
-
-using loja.services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Loja.Models;
 using Loja;
+using Loja.Models;
+using Microsoft.EntityFrameworkCore;
+using loja.services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Adicione o DbContext com MySQL ao contêiner de serviços
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<LojaDbContext>(options =>
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 26))));
+
+// Adicione os serviços ao contêiner
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<ClienteService>();
+builder.Services.AddScoped<FornecedoresService>();
 
 var app = builder.Build();
 
@@ -204,9 +210,7 @@ app.MapDelete("/produtos/{id}", async (int id, ProductService productService) =>
     return Results.Ok();
 });
 
-app.Run();
-
-// --------------------ENDPOINTS CLIENTES --------------------------------------------------------
+// ---------------ENDPOINTS CLIENTES ---------------------------------------------------------------------
 
 app.MapGet("/cliente", async (ClienteService clienteService) =>
 {
@@ -228,7 +232,6 @@ app.MapPost("/cliente", async (Cliente cliente, ClienteService clienteService) =
 {
     await clienteService.AddProductAsync(cliente);
     return Results.Created($"/cliente/{cliente.Id}", cliente);
-
 });
 
 app.MapPut("/cliente/{id}", async (int id, Cliente cliente, ClienteService clienteService) =>
@@ -248,12 +251,48 @@ app.MapDelete("/cliente/{id}", async (int id, ClienteService clienteService) =>
     return Results.Ok();
 });
 
+// ---------------ENDPOINTS FORNECEDORES ---------------------------------------------------------------------
 
-//---------------Endpoint Fornecedores-----------------------------------------------------------------------------
+app.MapGet("/fornecedores", async (FornecedoresService fornecedoresService) =>
+{
+    var fornecedores = await fornecedoresService.GetAllProductsAsync();
+    return Results.Ok(fornecedores);
+});
 
+app.MapGet("/fornecedores/{id}", async (int id, FornecedoresService fornecedoresService) =>
+{
+    var fornecedores = await fornecedoresService.GetProductByIdAsync(id);
+    if (fornecedores == null)
+    {
+        return Results.NotFound($"Fornecedores with ID {id} not found.");
+    }
+    return Results.Ok(fornecedores);
+});
 
+app.MapPost("/fornecedores", async (Fornecedores fornecedores, FornecedoresService fornecedoresService) =>
+{
+    await fornecedoresService.AddProductAsync(fornecedores);
+    return Results.Created($"/fornecedores/{fornecedores.id}", fornecedores);
+});
 
+app.MapPut("/fornecedores/{id}", async (int id, Fornecedores fornecedores, FornecedoresService fornecedoresService) =>
+{
+    if (id != fornecedores.id)
+    {
+        return Results.BadRequest("Fornecedores ID mismatch.");
+    }
 
+    await fornecedoresService.UpdateProductAsync(fornecedores);
+    return Results.Ok();
+});
+
+app.MapDelete("/fornecedores/{id}", async (int id, FornecedoresService fornecedoresService) =>
+{
+    await fornecedoresService.DeleteProductAsync(id);
+    return Results.Ok();
+});
+
+app.Run();
 
 
 

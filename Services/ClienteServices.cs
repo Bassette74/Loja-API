@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using loja.Data.loja.data;
-using Loja.Models;
 using Loja;
+using loja.Data;
 
 namespace loja.services
 {
