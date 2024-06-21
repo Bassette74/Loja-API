@@ -140,35 +140,47 @@ return Results.Ok(existingFornecedor);
 });
 
 */
-using loja.Data;
+using System;
+using System.IO;
+using System.Text;
+using System.Text.Json;
 
-using Loja;
 using Loja.Models;
+using Loja.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using loja.Data;
 using loja.services;
-
+using Loja;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicione o DbContext com MySQL ao contêiner de serviços
+// Adicionar o DbContext com MySQL ao contêiner de serviços
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<LojaDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 26))));
 
-// Adicione os serviços ao contêiner
+// Adicionar os serviços ao contêiner
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<FornecedoresService>();
+builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddSingleton(new JwtService("abcabcabcabcabcabcabcabcabcabcabc")); // Substitua pela sua chave secreta real
 
 var app = builder.Build();
 
-// Configurar as requisições HTTP 
+// Configuração das requisições HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 
-// ---------------ENDPOINTS PRODUTOS ---------------------------------------------------------------------
+// --------------- ENDPOINTS PRODUTOS -----------------------------------------
 
 app.MapGet("/produtos", async (ProductService productService) =>
 {
@@ -190,7 +202,6 @@ app.MapPost("/produtos", async (Produto produto, ProductService productService) 
 {
     await productService.AddProductAsync(produto);
     return Results.Created($"/produtos/{produto.Id}", produto);
-
 });
 
 app.MapPut("/produtos/{id}", async (int id, Produto produto, ProductService productService) =>
@@ -210,15 +221,15 @@ app.MapDelete("/produtos/{id}", async (int id, ProductService productService) =>
     return Results.Ok();
 });
 
-// ---------------ENDPOINTS CLIENTES ---------------------------------------------------------------------
+// --------------- ENDPOINTS CLIENTES -----------------------------------------
 
-app.MapGet("/cliente", async (ClienteService clienteService) =>
+app.MapGet("/clientes", async (ClienteService clienteService) =>
 {
     var clientes = await clienteService.GetAllProductsAsync();
     return Results.Ok(clientes);
 });
 
-app.MapGet("/cliente/{id}", async (int id, ClienteService clienteService) =>
+app.MapGet("/clientes/{id}", async (int id, ClienteService clienteService) =>
 {
     var cliente = await clienteService.GetProductByIdAsync(id);
     if (cliente == null)
@@ -228,13 +239,13 @@ app.MapGet("/cliente/{id}", async (int id, ClienteService clienteService) =>
     return Results.Ok(cliente);
 });
 
-app.MapPost("/cliente", async (Cliente cliente, ClienteService clienteService) =>
+app.MapPost("/clientes", async (Cliente cliente, ClienteService clienteService) =>
 {
     await clienteService.AddProductAsync(cliente);
-    return Results.Created($"/cliente/{cliente.Id}", cliente);
+    return Results.Created($"/clientes/{cliente.Id}", cliente);
 });
 
-app.MapPut("/cliente/{id}", async (int id, Cliente cliente, ClienteService clienteService) =>
+app.MapPut("/clientes/{id}", async (int id, Cliente cliente, ClienteService clienteService) =>
 {
     if (id != cliente.Id)
     {
@@ -245,13 +256,13 @@ app.MapPut("/cliente/{id}", async (int id, Cliente cliente, ClienteService clien
     return Results.Ok();
 });
 
-app.MapDelete("/cliente/{id}", async (int id, ClienteService clienteService) =>
+app.MapDelete("/clientes/{id}", async (int id, ClienteService clienteService) =>
 {
     await clienteService.DeleteProductAsync(id);
     return Results.Ok();
 });
 
-// ---------------ENDPOINTS FORNECEDORES ---------------------------------------------------------------------
+// --------------- ENDPOINTS FORNECEDORES -------------------------------------
 
 app.MapGet("/fornecedores", async (FornecedoresService fornecedoresService) =>
 {
@@ -261,12 +272,12 @@ app.MapGet("/fornecedores", async (FornecedoresService fornecedoresService) =>
 
 app.MapGet("/fornecedores/{id}", async (int id, FornecedoresService fornecedoresService) =>
 {
-    var fornecedores = await fornecedoresService.GetProductByIdAsync(id);
-    if (fornecedores == null)
+    var fornecedor = await fornecedoresService.GetProductByIdAsync(id);
+    if (fornecedor == null)
     {
-        return Results.NotFound($"Fornecedores with ID {id} not found.");
+        return Results.NotFound($"Fornecedor with ID {id} not found.");
     }
-    return Results.Ok(fornecedores);
+    return Results.Ok(fornecedor);
 });
 
 app.MapPost("/fornecedores", async (Fornecedores fornecedores, FornecedoresService fornecedoresService) =>
@@ -279,7 +290,7 @@ app.MapPut("/fornecedores/{id}", async (int id, Fornecedores fornecedores, Forne
 {
     if (id != fornecedores.id)
     {
-        return Results.BadRequest("Fornecedores ID mismatch.");
+        return Results.BadRequest("Fornecedor ID mismatch.");
     }
 
     await fornecedoresService.UpdateProductAsync(fornecedores);
@@ -292,7 +303,119 @@ app.MapDelete("/fornecedores/{id}", async (int id, FornecedoresService fornecedo
     return Results.Ok();
 });
 
+// --------------- ENDPOINTS USUÁRIOS -----------------------------------------
+
+// Endpoint para criar um novo usuário
+app.MapPost("/usuarios", async (HttpContext context, UsuarioService usuarioService, JwtService jwtService) =>
+{
+    // Receber o request
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+
+    // Deserializar o objeto JSON do request
+    var json = JsonDocument.Parse(body);
+    var nome = json.RootElement.GetProperty("nome").GetString();
+    var email = json.RootElement.GetProperty("email").GetString();
+    var senha = json.RootElement.GetProperty("senha").GetString();
+
+    // Criar novo usuário
+    var novoUsuario = new Usuario { Nome = nome, Email = email, Senha = senha };
+    int novoUsuarioId = await usuarioService.AddUsuarioAsync(novoUsuario);
+
+    // Gerar token JWT para o novo usuário
+    var token = jwtService.GenerateToken(email);
+
+    // Retornar resposta com o token JWT e status Created
+    var responseJson = new
+    {
+        token,
+        novoUsuarioId
+    };
+    await context.Response.WriteAsJsonAsync(responseJson);
+});
+
+// Endpoint para autenticar usuário e gerar token JWT
+app.MapPost("/login", async (HttpContext context, UsuarioService usuarioService, JwtService jwtService) =>
+{
+    // Receber o request
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+
+    // Deserializar o objeto JSON do request
+    var json = JsonDocument.Parse(body);
+    var email = json.RootElement.GetProperty("email").GetString();
+    var senha = json.RootElement.GetProperty("senha").GetString();
+
+    try
+    {
+        // Verificar se as credenciais são válidas
+        var usuario = await usuarioService.AuthenticateAsync(email, senha);
+        if (usuario == null)
+        {
+            // Retornar erro de autenticação se não encontrar o usuário
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Credenciais inválidas");
+            return;
+        }
+
+        // Gerar token JWT
+        var token = jwtService.GenerateToken(email);
+
+        // Retornar o token JWT
+        await context.Response.WriteAsync(token);
+    }
+    catch (Exception ex)
+    {
+        // Em caso de exceção, retornar erro interno do servidor
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsync($"Erro ao processar requisição: {ex.Message}");
+    }
+});
+
+// --------------- CONFIGURAÇÃO DO TOKEN JWT ----------------------------------
+
+app.UseAuthentication();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("abcabcabcabcabcabcabcabcabcabcabc"))
+        };
+    });
+
+// Rota segura: exemplo de rota que requer autenticação
+app.MapGet("/rotaSegura", async (HttpContext context) =>
+{
+    // Verificar se o token está presente nos headers da requisição
+    if (!context.Request.Headers.ContainsKey("Authorization"))
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("Token não fornecido");
+        return;
+    }
+
+    // Obter o token do header Authorization
+    var token = context.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+    // Validar o token JWT
+    var jwtService = context.RequestServices.GetRequiredService<JwtService>();
+    var principal = jwtService.ValidateToken(token);
+
+    // Verificar se a validação do token foi bem-sucedida
+    if (principal == null)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("Token inválido");
+        return;
+    }
+
+    // Se o token é válido: dar andamento na lógica do endpoint
+    await context.Response.WriteAsync("Autorizado");
+});
+
 app.Run();
-
-
-
