@@ -159,7 +159,7 @@ using loja.services;
 using Loja;
 
 var builder = WebApplication.CreateBuilder(args);
-
+       //Config banco de dados
 // Adicionar o DbContext com MySQL ao contêiner de serviços
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<LojaDbContext>(options =>
@@ -171,6 +171,7 @@ builder.Services.AddScoped<ClienteService>();
 builder.Services.AddScoped<FornecedoresService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddSingleton(new JwtService("abcabcabcabcabcabcabcabcabcabcabc")); // Substitua pela sua chave secreta real
+builder.Services.AddScoped<VendaService>();
 
 var app = builder.Build();
 
@@ -458,5 +459,54 @@ app.MapWhen(
         });
         
     });
+
+    //-----------VENDAS -----------------------------------------------------------
+
+    // Configurar as rotas para manipulação de vendas
+
+var dbContext = app.Services.GetRequiredService<LojaDbContext>();
+var vendaService = new VendaService(dbContext);
+
+// Rota para gravar uma nova venda
+app.MapPost("/vendas", async (Venda venda) =>
+{
+    try
+    {
+        int novaVendaId = await vendaService.GravarVendaAsync(venda);
+        return Results.Created($"/vendas/{novaVendaId}", novaVendaId);
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
+});
+
+// Rota para consultar vendas detalhadas por produto
+app.MapGet("/vendas/produto/{id}/detalhada", async (int produtoId) =>
+{
+    var vendasDetalhadas = await vendaService.ConsultarVendasPorProdutoDetalhadaAsync(produtoId);
+    return Results.Ok(vendasDetalhadas);
+});
+
+// Rota para consultar vendas sumarizadas por produto
+app.MapGet("/vendas/produto/{id}/sumarizada", async (int produtoId) =>
+{
+    var vendasSumarizadas = await vendaService.ConsultarVendasPorProdutoSumarizadaAsync(produtoId);
+    return Results.Ok(vendasSumarizadas);
+});
+
+// Rota para consultar vendas detalhadas por cliente
+app.MapGet("/vendas/cliente/{id}/detalhada", async (int clienteId) =>
+{
+    var vendasDetalhadas = await vendaService.ConsultarVendasPorClienteDetalhadaAsync(clienteId);
+    return Results.Ok(vendasDetalhadas);
+});
+
+// Rota para consultar vendas sumarizadas por cliente
+app.MapGet("/vendas/cliente/{id}/sumarizada", async (int clienteId) =>
+{
+    var vendasSumarizadas = await vendaService.ConsultarVendasPorClienteSumarizadaAsync(clienteId);
+    return Results.Ok(vendasSumarizadas);
+});
 
 app.Run();
